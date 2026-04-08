@@ -1,3 +1,5 @@
+import type { Geolocation, ActionMetadata } from './transaction';
+
 export interface CreateSigningSessionRequest {
   purpose: 'DOCUMENT_SIGNATURE' | 'ACTION_AUTHENTICATION';
   policy: {
@@ -86,13 +88,6 @@ export interface SigningSessionListResponse {
   nextCursor?: string;
 }
 
-export interface Geolocation {
-  latitude?: number;
-  longitude?: number;
-  accuracy?: number;
-  source?: 'GPS' | 'IP' | 'WIFI' | 'CELL';
-}
-
 export interface AdvanceSessionRequest {
   action:
     | 'accept'
@@ -154,12 +149,6 @@ export interface BootstrapDocument {
   presignedUrl?: string;
   filename?: string;
   hash?: string;
-}
-
-export interface ActionMetadata {
-  type: string;
-  description: string;
-  reference?: string;
 }
 
 export interface SigningSessionAppearanceResponse {
