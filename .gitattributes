@@ -1,0 +1,6 @@
+# Exclude from git archive / release tarballs
+tests/           export-ignore
+jest.config.js   export-ignore
+tsconfig.json    export-ignore
+.npmignore       export-ignore
+.gitattributes   export-ignore

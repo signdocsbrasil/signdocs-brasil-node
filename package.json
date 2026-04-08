@@ -1,0 +1,38 @@
+{
+  "name": "@signdocs-brasil/api",
+  "version": "1.1.0",
+  "description": "Official TypeScript/Node.js SDK for the SignDocsBrasil API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/signdocsbrasil/signdocs-brasil-node.git"
+  },
+  "author": {
+    "name": "SignDocsBrasil",
+    "email": "dev@signdocs.com.br",
+    "url": "https://signdocs.com.br"
+  },
+  "homepage": "https://docs.signdocs.com.br",
+  "bugs": {
+    "url": "https://github.com/signdocsbrasil/signdocs-brasil-node/issues"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.3.0"
+  },
+  "keywords": ["signdocs", "digital-signature", "icp-brasil", "api", "sdk"]
+}
