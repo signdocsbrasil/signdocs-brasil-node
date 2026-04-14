@@ -44,16 +44,71 @@ export interface VerificationResponse {
   }>;
   signer: {
     displayName?: string;
+    cpfCnpj?: string;
   };
   tenantName: string;
+  tenantCnpj?: string;
   createdAt: string;
+}
+
+export interface VerificationDownloadArtifact {
+  url: string;
+  filename: string;
 }
 
 export interface VerificationDownloadsResponse {
   evidenceId: string;
   downloads: {
-    evidencePack?: { url: string; filename: string };
-    signedPdf?: { url: string; filename: string };
-    finalPdf?: { url: string; filename: string };
+    originalDocument: VerificationDownloadArtifact | null;
+    evidencePack: VerificationDownloadArtifact | null;
+    finalPdf: VerificationDownloadArtifact | null;
+    /**
+     * PKCS#7 / CMS detached `.p7s` for digital-cert signing of non-PDF
+     * documents. Present only for **standalone signing sessions**
+     * (single-signer). For evidences belonging to a multi-signer envelope
+     * this field is omitted entirely; the consolidated `.p7s` for the
+     * envelope is exposed via {@link EnvelopeVerificationResponse}.
+     */
+    signedSignature?: VerificationDownloadArtifact | null;
   };
+}
+
+/** Per-signer entry in {@link EnvelopeVerificationResponse}. */
+export interface EnvelopeVerificationSigner {
+  signerIndex: number;
+  displayName: string;
+  cpfCnpj?: string;
+  status: string;
+  policyProfile?: string;
+  /** Present only for completed signers; use with `verification.verify()`. */
+  evidenceId?: string;
+  completedAt?: string;
+}
+
+/**
+ * Response from `GET /v1/verify/envelope/{envelopeId}` — public verification
+ * data for a multi-signer envelope.
+ */
+export interface EnvelopeVerificationResponse {
+  envelopeId: string;
+  status: string;
+  signingMode: 'PARALLEL' | 'SEQUENTIAL';
+  totalSigners: number;
+  completedSessions: number;
+  documentHash: string;
+  tenantName?: string;
+  tenantCnpj?: string;
+  signers: EnvelopeVerificationSigner[];
+  downloads?: {
+    /** PDF combined with all embedded signatures (PDF envelopes only). */
+    combinedSignedPdf?: VerificationDownloadArtifact;
+    /**
+     * Consolidated PKCS#7 / CMS detached `.p7s` containing every signer's
+     * `SignerInfo` (non-PDF envelopes only). Promoted on completion of the
+     * final signer.
+     */
+    consolidatedSignature?: VerificationDownloadArtifact;
+  };
+  createdAt: string;
+  completedAt?: string;
 }
