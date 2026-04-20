@@ -1,3 +1,6 @@
+import { ResponseMetadata } from './response-metadata';
+import { TokenCache } from './token-cache';
+
 export interface Logger {
   debug(message: string, ...args: unknown[]): void;
   info(message: string, ...args: unknown[]): void;
@@ -16,6 +19,21 @@ export interface ClientConfig {
   scopes?: string[];
   httpClient?: typeof fetch;
   logger?: Logger;
+  /**
+   * Pluggable OAuth token cache. Defaults to in-memory (single Node
+   * process). Stateless hosts (serverless, fan-out workers) should
+   * supply a shared-store implementation (Redis, DynamoDB, etc.) so
+   * tokens survive across worker instances.
+   */
+  tokenCache?: TokenCache;
+  /**
+   * Callback fired after every API response with a {@link ResponseMetadata}.
+   * Use for observability — rate-limit counters, deprecation warnings,
+   * request IDs. Exceptions thrown from the callback are logged (via
+   * the configured `logger`, if any) and swallowed — observability must
+   * never break the request path.
+   */
+  onResponse?: (meta: ResponseMetadata) => void;
 }
 
 export const DEFAULT_BASE_URL = 'https://api.signdocs.com.br';
@@ -29,7 +47,12 @@ export const DEFAULT_SCOPES = [
   'webhooks:write',
 ];
 
-export function resolveConfig(config: ClientConfig): Required<Omit<ClientConfig, 'clientSecret' | 'privateKey' | 'kid' | 'httpClient' | 'logger'>> & Pick<ClientConfig, 'clientSecret' | 'privateKey' | 'kid' | 'httpClient' | 'logger'> {
+export function resolveConfig(
+  config: ClientConfig,
+): Required<
+  Omit<ClientConfig, 'clientSecret' | 'privateKey' | 'kid' | 'httpClient' | 'logger' | 'tokenCache' | 'onResponse'>
+> &
+  Pick<ClientConfig, 'clientSecret' | 'privateKey' | 'kid' | 'httpClient' | 'logger' | 'tokenCache' | 'onResponse'> {
   if (!config.clientId) {
     throw new Error('clientId is required');
   }
@@ -51,5 +74,7 @@ export function resolveConfig(config: ClientConfig): Required<Omit<ClientConfig,
     scopes: config.scopes ?? DEFAULT_SCOPES,
     httpClient: config.httpClient,
     logger: config.logger,
+    tokenCache: config.tokenCache,
+    onResponse: config.onResponse,
   };
 }

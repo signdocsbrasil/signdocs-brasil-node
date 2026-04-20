@@ -1,5 +1,6 @@
 import * as crypto from 'crypto';
 import { AuthenticationError } from './errors';
+import { CachedToken, InMemoryTokenCache, TokenCache, deriveCacheKey } from './token-cache';
 
 export interface TokenResponse {
   access_token: string;
@@ -8,19 +9,26 @@ export interface TokenResponse {
   scope: string;
 }
 
-interface CachedToken {
-  accessToken: string;
-  expiresAt: number;
-}
-
+/**
+ * Handles OAuth2 client_credentials token acquisition for both
+ * client_secret and private_key_jwt (ES256) authentication modes.
+ *
+ * Tokens are cached via a pluggable {@link TokenCache}. The default
+ * {@link InMemoryTokenCache} preserves the pre-1.3 behavior of caching
+ * in process memory. Stateless hosts (serverless, fan-out workers)
+ * should inject a shared-store cache (Redis, DynamoDB, etc.) to avoid
+ * fetching a fresh token on every request.
+ */
 export class AuthHandler {
   private readonly clientId: string;
   private readonly clientSecret?: string;
   private readonly privateKey?: string;
   private readonly kid?: string;
+  private readonly baseUrl: string;
   private readonly tokenUrl: string;
   private readonly scopes: string[];
-  private cachedToken: CachedToken | null = null;
+  private readonly cache: TokenCache;
+  private readonly cacheKey: string;
   private refreshPromise: Promise<string> | null = null;
 
   constructor(opts: {
@@ -30,18 +38,23 @@ export class AuthHandler {
     kid?: string;
     baseUrl: string;
     scopes: string[];
+    cache?: TokenCache;
   }) {
     this.clientId = opts.clientId;
     this.clientSecret = opts.clientSecret;
     this.privateKey = opts.privateKey;
     this.kid = opts.kid;
+    this.baseUrl = opts.baseUrl;
     this.tokenUrl = `${opts.baseUrl}/oauth2/token`;
     this.scopes = opts.scopes;
+    this.cache = opts.cache ?? new InMemoryTokenCache();
+    this.cacheKey = deriveCacheKey(opts.clientId, opts.baseUrl, opts.scopes);
   }
 
   async getAccessToken(): Promise<string> {
-    if (this.cachedToken && Date.now() < this.cachedToken.expiresAt - 30_000) {
-      return this.cachedToken.accessToken;
+    const cached = this.cache.get(this.cacheKey);
+    if (cached && Date.now() < cached.expiresAt - 30_000) {
+      return cached.accessToken;
     }
 
     if (this.refreshPromise) {
@@ -54,6 +67,14 @@ export class AuthHandler {
     } finally {
       this.refreshPromise = null;
     }
+  }
+
+  /**
+   * Invalidate the cached token so that the next call to getAccessToken()
+   * will fetch a fresh token from the authorization server.
+   */
+  invalidate(): void {
+    this.cache.delete(this.cacheKey);
   }
 
   private async fetchToken(): Promise<string> {
@@ -82,10 +103,11 @@ export class AuthHandler {
     }
 
     const data = await response.json() as TokenResponse;
-    this.cachedToken = {
+    const token: CachedToken = {
       accessToken: data.access_token,
       expiresAt: Date.now() + data.expires_in * 1000,
     };
+    this.cache.set(this.cacheKey, token);
 
     return data.access_token;
   }

@@ -18,4 +18,6 @@ export {
   ProblemDetail,
 } from './errors';
 export { verifyWebhookSignature, WebhookVerifyOptions } from './webhook-verifier';
+export { TokenCache, CachedToken, InMemoryTokenCache, deriveCacheKey } from './token-cache';
+export { ResponseMetadata, fromHeaders as responseMetadataFromHeaders } from './response-metadata';
 export * from './types';

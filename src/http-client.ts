@@ -1,8 +1,12 @@
 import { AuthHandler } from './auth';
 import { Logger } from './config';
 import { ConnectionError, TimeoutError, parseApiError } from './errors';
+import { ResponseMetadata, fromHeaders } from './response-metadata';
 import { withRetry } from './retry';
 import * as crypto from 'crypto';
+
+const SDK_VERSION = '1.3.0';
+const USER_AGENT = `signdocs-brasil-node/${SDK_VERSION}`;
 
 export interface RequestOptions {
   method: string;
@@ -21,6 +25,7 @@ export class HttpClient {
   private readonly auth: AuthHandler;
   private readonly fetchFn: typeof fetch;
   private readonly logger?: Logger;
+  private readonly onResponse?: (meta: ResponseMetadata) => void;
 
   constructor(opts: {
     baseUrl: string;
@@ -29,6 +34,7 @@ export class HttpClient {
     auth: AuthHandler;
     fetchFn?: typeof fetch;
     logger?: Logger;
+    onResponse?: (meta: ResponseMetadata) => void;
   }) {
     this.baseUrl = opts.baseUrl;
     this.timeout = opts.timeout;
@@ -36,6 +42,7 @@ export class HttpClient {
     this.auth = opts.auth;
     this.fetchFn = opts.fetchFn ?? fetch;
     this.logger = opts.logger;
+    this.onResponse = opts.onResponse;
   }
 
   async request<T>(opts: RequestOptions): Promise<T> {
@@ -47,7 +54,7 @@ export class HttpClient {
       async () => {
         const url = this.buildUrl(opts.path, opts.query);
         const headers: Record<string, string> = {
-          'User-Agent': 'signdocs-brasil-node/1.0.0',
+          'User-Agent': USER_AGENT,
           ...opts.headers,
         };
 
@@ -85,6 +92,8 @@ export class HttpClient {
       },
       async (response: Response) => {
         const durationMs = Date.now() - start;
+
+        this.fireOnResponse(response, opts.method, this.buildPathWithQuery(opts.path, opts.query));
 
         if (response.status === 204) {
           this.logger?.info('request completed', { method: opts.method, path: opts.path, status: response.status, durationMs });
@@ -136,5 +145,41 @@ export class HttpClient {
       }
     }
     return url.toString();
+  }
+
+  private buildPathWithQuery(path: string, query?: Record<string, string | number | undefined>): string {
+    if (!query) {
+      return path;
+    }
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(query)) {
+      if (value !== undefined) {
+        params.set(key, String(value));
+      }
+    }
+    const qs = params.toString();
+    return qs === '' ? path : `${path}?${qs}`;
+  }
+
+  /**
+   * Invoke the `onResponse` observer, if configured. Any exception
+   * thrown by the callback is logged but does not propagate —
+   * observability must never break the request path.
+   */
+  private fireOnResponse(response: Response, method: string, path: string): void {
+    if (!this.onResponse) {
+      return;
+    }
+
+    try {
+      const meta = fromHeaders(response.headers, method, path, response.status);
+      this.onResponse(meta);
+    } catch (error: any) {
+      this.logger?.warn('onResponse callback threw', {
+        method,
+        path,
+        error: error?.message ?? String(error),
+      });
+    }
   }
 }

@@ -38,6 +38,7 @@ export class SignDocsBrasilClient {
       kid: resolved.kid,
       baseUrl: resolved.baseUrl,
       scopes: resolved.scopes,
+      cache: resolved.tokenCache,
     });
 
     const http = new HttpClient({
@@ -47,6 +48,7 @@ export class SignDocsBrasilClient {
       auth,
       fetchFn: resolved.httpClient,
       logger: resolved.logger,
+      onResponse: resolved.onResponse,
     });
 
     this.health = new HealthResource(http);

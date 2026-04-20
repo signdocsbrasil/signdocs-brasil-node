@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-04-20
+
+### Added
+
+- `TokenCache` interface — pluggable OAuth token cache. Inject via `new SignDocsBrasilClient({ tokenCache })` to share tokens across serverless workers / fan-out processes. Default `InMemoryTokenCache` preserves pre-1.3 single-process behavior.
+- `CachedToken` type and `InMemoryTokenCache` default implementation exported from the top-level entry point.
+- `deriveCacheKey(clientId, baseUrl, scopes)` helper — deterministic SHA-256 cache key (first 32 hex chars, `signdocs.oauth.` prefix). Scopes are sorted and trailing slash on `baseUrl` is trimmed so equivalent configurations share a cache slot.
+- `ResponseMetadata` type + `onResponse` callback on `ClientConfig` — captures `RateLimit-*`, `Deprecation`, `Sunset`, and request-ID headers from every API response. Exceptions thrown from the callback are logged (via the configured `logger`) and swallowed so observability never breaks the request path.
+- Webhook event types for the NT65 INSS consignado flow:
+  - `STEP.PURPOSE_DISCLOSURE_SENT` — purpose-disclosure notification delivered to the beneficiary.
+  - `TRANSACTION.DEADLINE_APPROACHING` — two business days remaining until the INSS submission deadline.
+- `WEBHOOK_EVENT_TYPES` readonly array and `isNt65Event(event)` helper (plus `NT65_WEBHOOK_EVENTS` set) for inspecting the canonical event catalog.
+
+### Changed
+
+- `AuthHandler.getAccessToken()` now reads from and writes to the configured `TokenCache`. Cache keys are derived deterministically from `clientId + baseUrl + scopes` (SHA-256 truncated to 32 chars) so the same credentials reuse the same cached token across process boundaries.
+- `AuthHandler.invalidate()` now deletes the cache entry instead of clearing an internal field.
+- `User-Agent` bumped to `signdocs-brasil-node/1.3.0`.
+
 ## [1.2.0] - 2026-04-14
 
 ### Added
