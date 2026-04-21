@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.0] - 2026-04-20
 
+### Fixed
+
+- `webhooks.list()` now returns an actual `Webhook[]` matching its declared type. Previously it returned the raw `{webhooks, count}` API envelope, so `.length`, `.map()`, and iteration all failed at runtime. The method now unwraps the envelope (and accepts a bare array defensively for test fixtures).
+
 ### Added
 
 - `TokenCache` interface — pluggable OAuth token cache. Inject via `new SignDocsBrasilClient({ tokenCache })` to share tokens across serverless workers / fan-out processes. Default `InMemoryTokenCache` preserves pre-1.3 single-process behavior.

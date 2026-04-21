@@ -19,11 +19,14 @@ export class WebhooksResource {
   }
 
   async list(options?: { timeout?: number }): Promise<Webhook[]> {
-    return this.http.request<Webhook[]>({
+    // GET /v1/webhooks returns { webhooks: Webhook[], count: number }.
+    // Older mock-only paths returned a bare array; accept both defensively.
+    const response = await this.http.request<Webhook[] | { webhooks: Webhook[]; count: number }>({
       method: 'GET',
       path: '/v1/webhooks',
       timeout: options?.timeout,
     });
+    return Array.isArray(response) ? response : (response?.webhooks ?? []);
   }
 
   async delete(webhookId: string, options?: { timeout?: number }): Promise<void> {
