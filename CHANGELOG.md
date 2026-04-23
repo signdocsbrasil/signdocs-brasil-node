@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-04-23
+
+### Added
+
+- `Owner` interface — optional requester identity (`{ email?, name? }`) on `CreateSigningSessionRequest` and `CreateEnvelopeRequest`. When provided, SignDocs automatically:
+  1. Emails each signer an invitation with their signing URL when `signer.email` differs from `owner.email` (case-insensitive).
+  2. Emails the owner a completion notification per signer completion (and a final "all signed" message for envelopes).
+  Omit `owner` to keep the traditional behavior (caller delivers signing URLs out-of-band and uses webhooks for completion state).
+- `inviteSent` boolean on the create-session response (`SigningSession`) and on `EnvelopeSession`. Set to `true` when SignDocs dispatched an invitation email at creation time.
+
+### Changed
+
+- `User-Agent` bumped to `signdocs-brasil-node/1.4.0`.
+
 ## [1.3.0] - 2026-04-20
 
 ### Fixed

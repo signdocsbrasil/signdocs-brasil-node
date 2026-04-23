@@ -1,5 +1,23 @@
 import type { Geolocation, ActionMetadata } from './transaction';
 
+/**
+ * Identity of the requester creating a signing session or envelope,
+ * distinct from the signer(s). When provided, SignDocs automatically:
+ *
+ *   1. Emails each signer an invitation with their signing URL — when
+ *      signer.email differs from owner.email (case-insensitive).
+ *   2. Emails the owner a completion notification per signer completion
+ *      (and a final "all signed" message for envelopes).
+ *
+ * Omit `owner` to keep the traditional behavior: the caller delivers
+ * signing URLs via their own channels and relies on webhooks for
+ * completion state.
+ */
+export interface Owner {
+  email?: string;
+  name?: string;
+}
+
 export interface CreateSigningSessionRequest {
   purpose: 'DOCUMENT_SIGNATURE' | 'ACTION_AUTHENTICATION';
   policy: {
@@ -41,6 +59,8 @@ export interface CreateSigningSessionRequest {
     headerStyle?: 'full' | 'minimal' | 'none';
     fontFamily?: string;
   };
+  /** See {@link Owner} for behavior when set. */
+  owner?: Owner;
 }
 
 export interface SigningSession {
@@ -51,6 +71,12 @@ export interface SigningSession {
   clientSecret: string;
   expiresAt: string;
   createdAt: string;
+  /**
+   * Set to `true` when the server dispatched an invitation email to
+   * `signer.email` at session creation. Populated only when `owner` was
+   * provided and `signer.email` differs from `owner.email`.
+   */
+  inviteSent?: boolean;
 }
 
 export interface SigningSessionStatus {

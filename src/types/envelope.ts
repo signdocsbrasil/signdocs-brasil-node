@@ -1,3 +1,5 @@
+import type { Owner } from './signing-session';
+
 export type EnvelopeStatus = 'CREATED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED';
 export type SigningMode = 'PARALLEL' | 'SEQUENTIAL';
 
@@ -10,6 +12,13 @@ export interface CreateEnvelopeRequest {
   returnUrl?: string;
   cancelUrl?: string;
   expiresInMinutes?: number;
+  /**
+   * When provided, SignDocs automatically sends an invite email to each
+   * signer as they are added to the envelope (if their email differs
+   * from the owner's), and notifies the owner on every signer completion
+   * plus a final "all signed" message. See {@link Owner}.
+   */
+  owner?: Owner;
 }
 
 export interface Envelope {
@@ -49,6 +58,13 @@ export interface EnvelopeSession {
   url: string;
   clientSecret: string;
   expiresAt: string;
+  /**
+   * Set to `true` when the server dispatched an invitation email to
+   * `signer.email` at the time this session was added. Populated only
+   * when the envelope was created with an `owner` and the signer's
+   * email differs from the owner's.
+   */
+  inviteSent?: boolean;
 }
 
 export interface EnvelopeSessionSummary {
