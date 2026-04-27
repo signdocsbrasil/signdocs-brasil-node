@@ -27,6 +27,9 @@ const SPEC_EVENTS: readonly string[] = [
   'SIGNING_SESSION.COMPLETED',
   'SIGNING_SESSION.CANCELLED',
   'SIGNING_SESSION.EXPIRED',
+  'ENVELOPE.CREATED',
+  'ENVELOPE.ALL_SIGNED',
+  'ENVELOPE.EXPIRED',
 ];
 
 describe('WebhookEventType', () => {
@@ -44,7 +47,7 @@ describe('WebhookEventType', () => {
 
   it('has the same count as the spec', () => {
     expect(WEBHOOK_EVENT_TYPES.length).toBe(SPEC_EVENTS.length);
-    expect(WEBHOOK_EVENT_TYPES.length).toBe(17);
+    expect(WEBHOOK_EVENT_TYPES.length).toBe(20);
   });
 
   it('flags NT65 INSS consignado events', () => {

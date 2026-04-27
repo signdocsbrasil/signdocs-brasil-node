@@ -31,6 +31,8 @@ export interface VerificationResponse {
   evidenceId: string;
   status: string;
   transactionId: string;
+  /** Present only when the evidence belongs to a multi-signer envelope. */
+  envelopeId?: string;
   completedAt?: string;
   purpose: string;
   documentHash: string;
