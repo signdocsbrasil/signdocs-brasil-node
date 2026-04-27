@@ -1,6 +1,6 @@
 {
   "name": "@signdocs-brasil/api",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Official TypeScript/Node.js SDK for the SignDocsBrasil API",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

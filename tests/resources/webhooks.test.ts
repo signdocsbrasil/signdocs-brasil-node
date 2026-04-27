@@ -58,7 +58,14 @@ describe('WebhooksResource', () => {
   });
 
   it('should test a webhook', async () => {
-    const mockResponse = { deliveryId: 'dlv_1', status: 'delivered', statusCode: 200 };
+    const mockResponse = {
+      webhookId: 'wh_1',
+      testDelivery: {
+        httpStatus: 200,
+        success: true,
+        timestamp: '2026-04-27T01:23:28.323Z',
+      },
+    };
     http.request.mockResolvedValue(mockResponse);
 
     const result = await webhooks.test('wh_1');
@@ -67,6 +74,29 @@ describe('WebhooksResource', () => {
       method: 'POST',
       path: '/v1/webhooks/wh_1/test',
     });
-    expect(result.deliveryId).toBe('dlv_1');
+    expect(result.webhookId).toBe('wh_1');
+    expect(result.testDelivery.httpStatus).toBe(200);
+    expect(result.testDelivery.success).toBe(true);
+    expect(result.testDelivery.timestamp).toBe('2026-04-27T01:23:28.323Z');
+    expect(result.testDelivery.error).toBeUndefined();
+  });
+
+  it('should surface error string on failed test delivery', async () => {
+    const mockResponse = {
+      webhookId: 'wh_1',
+      testDelivery: {
+        httpStatus: 500,
+        success: false,
+        error: 'connect ECONNREFUSED',
+        timestamp: '2026-04-27T01:23:28.323Z',
+      },
+    };
+    http.request.mockResolvedValue(mockResponse);
+
+    const result = await webhooks.test('wh_1');
+
+    expect(result.testDelivery.success).toBe(false);
+    expect(result.testDelivery.httpStatus).toBe(500);
+    expect(result.testDelivery.error).toBe('connect ECONNREFUSED');
   });
 });

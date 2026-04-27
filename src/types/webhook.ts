@@ -15,10 +15,13 @@ export type WebhookEventType =
   | 'SIGNING_SESSION.CREATED'
   | 'SIGNING_SESSION.COMPLETED'
   | 'SIGNING_SESSION.CANCELLED'
-  | 'SIGNING_SESSION.EXPIRED';
+  | 'SIGNING_SESSION.EXPIRED'
+  | 'ENVELOPE.CREATED'
+  | 'ENVELOPE.ALL_SIGNED'
+  | 'ENVELOPE.EXPIRED';
 
 /**
- * Canonical set of all 17 spec webhook event types. Kept in lockstep
+ * Canonical set of all spec webhook event types. Kept in lockstep
  * with the OpenAPI spec `WebhookEventType` enum at
  * `openapi/openapi.yaml`.
  */
@@ -40,6 +43,9 @@ export const WEBHOOK_EVENT_TYPES: readonly WebhookEventType[] = [
   'SIGNING_SESSION.COMPLETED',
   'SIGNING_SESSION.CANCELLED',
   'SIGNING_SESSION.EXPIRED',
+  'ENVELOPE.CREATED',
+  'ENVELOPE.ALL_SIGNED',
+  'ENVELOPE.EXPIRED',
 ] as const;
 
 /**
@@ -91,8 +97,14 @@ export interface WebhookPayload {
   test?: boolean;
 }
 
+export interface WebhookTestDelivery {
+  httpStatus: number;
+  success: boolean;
+  error?: string;
+  timestamp: string;
+}
+
 export interface WebhookTestResponse {
-  deliveryId: string;
-  status: string;
-  statusCode?: number;
+  webhookId: string;
+  testDelivery: WebhookTestDelivery;
 }
