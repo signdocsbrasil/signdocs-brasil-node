@@ -63,6 +63,9 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npm run build
-      - run: npm publish --access public --provenance
+      # TEMP diagnostic: --provenance dropped to isolate npm Trusted Publisher
+      # OIDC drift vs. token validity (404-on-PUT). Restore --provenance once the
+      # npmjs.org Trusted Publisher config is confirmed/repaired.
+      - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
