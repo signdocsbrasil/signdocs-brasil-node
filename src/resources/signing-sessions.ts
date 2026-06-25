@@ -9,6 +9,7 @@ import {
   CancelSigningSessionResponse,
   SigningSessionListParams,
   SigningSessionListResponse,
+  ResendOtpRequest,
 } from '../types/signing-session';
 
 export class SigningSessionsResource {
@@ -112,14 +113,17 @@ export class SigningSessionsResource {
 
   /**
    * Resend the OTP challenge for a signing session.
+   * Optionally specify a delivery channel ('email' or 'sms').
    */
   async resendOtp(
     sessionId: string,
+    request?: ResendOtpRequest,
     options?: { timeout?: number },
   ): Promise<AdvanceSessionResponse> {
     return this.http.request<AdvanceSessionResponse>({
       method: 'POST',
       path: `/v1/signing-sessions/${sessionId}/resend-otp`,
+      body: request?.channel ? { channel: request.channel } : undefined,
       timeout: options?.timeout,
     });
   }

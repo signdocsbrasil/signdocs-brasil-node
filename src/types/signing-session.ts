@@ -32,6 +32,7 @@ export interface CreateSigningSessionRequest {
     cnpj?: string;
     userExternalId: string;
     otpChannel?: 'email' | 'sms';
+    otpChannelSelectable?: boolean;
     birthDate?: string;
   };
   document?: {
@@ -124,6 +125,7 @@ export interface AdvanceSessionRequest {
     | 'prepare_signing'
     | 'complete_signing';
   otpCode?: string;
+  otpChannel?: 'email' | 'sms';
   livenessSessionId?: string;
   certificateChainPems?: string[];
   signatureRequestId?: string;
@@ -162,6 +164,12 @@ export interface BootstrapSigner {
   name: string;
   maskedEmail?: string;
   maskedCpf?: string;
+  otpChannelSelectable?: boolean;
+  availableOtpChannels?: Array<'email' | 'sms'>;
+}
+
+export interface ResendOtpRequest {
+  channel?: 'email' | 'sms';
 }
 
 export interface BootstrapStep {
