@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2026-06-24
+
+### Added
+
+- `client.verification.verifyDocument(request)` — wraps the new `POST /v1/verify/document` endpoint, which inspects an uploaded PDF for embedded electronic/digital signatures. Unlike the other `verify*` methods, this endpoint is **authenticated** (Bearer JWT) and requires the `verification:write` scope; it is also **production-credentials only** (the detection backend is not provisioned in HML).
+- New types `VerifyDocumentRequest`, `VerifyDocumentResponse`, `DetectedSignature`, and the `SignatureType` union (`'pades' | 'pkcs7' | 'legacy' | 'digital_certificate'`).
+
+### Changed
+
+- `User-Agent` bumped to `signdocs-brasil-node/1.6.0`.
+
 ## [1.5.0] - 2026-04-27
 
 ### Added

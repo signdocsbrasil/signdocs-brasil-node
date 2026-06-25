@@ -194,6 +194,39 @@ describe('VerificationResource', () => {
     });
     expect(result).toEqual(mockResponse);
   });
+
+  it('should verify a document with an authenticated POST', async () => {
+    const mockResponse = {
+      signed: true,
+      signatureCount: 1,
+      signatures: [
+        {
+          method: 'CMS',
+          type: 'pkcs7',
+          subFilter: 'adbe.pkcs7.detached',
+          filter: 'Adobe.PPKLite',
+          confidence: 1.0,
+        },
+      ],
+      checkedAt: '2026-06-24T12:00:00.000Z',
+    };
+    http.request.mockResolvedValue(mockResponse);
+
+    const result = await verification.verifyDocument({ content: 'base64-pdf', filename: 'doc.pdf' });
+
+    expect(http.request).toHaveBeenCalledWith({
+      method: 'POST',
+      path: '/v1/verify/document',
+      body: { content: 'base64-pdf', filename: 'doc.pdf' },
+      timeout: undefined,
+    });
+    // Authenticated endpoint — must NOT set noAuth.
+    expect(http.request.mock.calls[0][0]).not.toHaveProperty('noAuth');
+    expect(result.signed).toBe(true);
+    expect(result.signatureCount).toBe(1);
+    expect(result.signatures[0].type).toBe('pkcs7');
+    expect(result.signatures[0].subFilter).toBe('adbe.pkcs7.detached');
+  });
 });
 
 describe('UsersResource', () => {

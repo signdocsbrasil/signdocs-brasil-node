@@ -5,7 +5,7 @@ import { ResponseMetadata, fromHeaders } from './response-metadata';
 import { withRetry } from './retry';
 import * as crypto from 'crypto';
 
-const SDK_VERSION = '1.5.0';
+const SDK_VERSION = '1.6.0';
 const USER_AGENT = `signdocs-brasil-node/${SDK_VERSION}`;
 
 export interface RequestOptions {

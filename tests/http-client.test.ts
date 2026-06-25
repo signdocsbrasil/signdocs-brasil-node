@@ -59,7 +59,7 @@ describe('HttpClient', () => {
     await client.request({ method: 'GET', path: '/v1/test' });
 
     const headers = fn.mock.calls[0][1].headers;
-    expect(headers['User-Agent']).toBe('signdocs-brasil-node/1.5.0');
+    expect(headers['User-Agent']).toBe('signdocs-brasil-node/1.6.0');
   });
 
   it('should skip Authorization when noAuth is true', async () => {

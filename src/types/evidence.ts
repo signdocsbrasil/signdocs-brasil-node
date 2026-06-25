@@ -75,6 +75,48 @@ export interface VerificationDownloadsResponse {
   };
 }
 
+/**
+ * Cryptographic signature type detected in a PDF by
+ * `POST /v1/verify/document`.
+ *
+ * - `pades` — PAdES (PDF Advanced Electronic Signatures).
+ * - `pkcs7` — PKCS#7 / CMS detached signature.
+ * - `legacy` — older / non-standard signature embedding.
+ * - `digital_certificate` — ICP-Brasil digital-certificate signature.
+ */
+export type SignatureType = 'pades' | 'pkcs7' | 'legacy' | 'digital_certificate';
+
+/** A single signature detected by {@link VerifyDocumentResponse}. */
+export interface DetectedSignature {
+  method: string;
+  type: SignatureType;
+  subFilter?: string;
+  filter?: string;
+  confidence: number;
+}
+
+/**
+ * Request body for `POST /v1/verify/document`.
+ */
+export interface VerifyDocumentRequest {
+  /** Base64-encoded PDF to inspect. Required. */
+  content: string;
+  /** Optional original filename, used only for reporting. */
+  filename?: string;
+}
+
+/**
+ * Response from `POST /v1/verify/document` — the result of inspecting an
+ * uploaded PDF for embedded electronic/digital signatures.
+ */
+export interface VerifyDocumentResponse {
+  signed: boolean;
+  signatureCount: number;
+  signatures: DetectedSignature[];
+  /** ISO 8601 date-time at which the document was inspected. */
+  checkedAt: string;
+}
+
 /** Per-signer entry in {@link EnvelopeVerificationResponse}. */
 export interface EnvelopeVerificationSigner {
   signerIndex: number;

@@ -1,0 +1,33 @@
+{
+  "description": "Verify an uploaded PDF for embedded signatures (authenticated; requires verification:write scope and production credentials)",
+  "input": {
+    "content": "JVBERi0xLjcK..base64-encoded-pdf..",
+    "filename": "contrato-assinado.pdf"
+  },
+  "expected_request": {
+    "method": "POST",
+    "path": "/v1/verify/document",
+    "no_auth": false,
+    "body": {
+      "content": "JVBERi0xLjcK..base64-encoded-pdf..",
+      "filename": "contrato-assinado.pdf"
+    }
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "signed": true,
+      "signatureCount": 1,
+      "signatures": [
+        {
+          "method": "CMS",
+          "type": "pkcs7",
+          "subFilter": "adbe.pkcs7.detached",
+          "filter": "Adobe.PPKLite",
+          "confidence": 1.0
+        }
+      ],
+      "checkedAt": "2026-06-24T12:00:00.000Z"
+    }
+  }
+}
