@@ -72,4 +72,23 @@ describe('DocumentsResource', () => {
     expect(result.originalUrl).toBeDefined();
     expect(result.signedUrl).toBeDefined();
   });
+
+  it('should surface the detached signature for a non-PDF download', async () => {
+    // Non-PDF transactions come back as documentFormat 'generic' with a
+    // detached CAdES signature instead of an embedded signedUrl.
+    const mockDownload = {
+      transactionId: 'tx_2',
+      documentFormat: 'generic',
+      originalUrl: 'https://s3.example.com/document.docx',
+      signatureUrl: 'https://s3.example.com/signature.p7s',
+      expiresIn: 900,
+    };
+    http.request.mockResolvedValue(mockDownload);
+
+    const result = await documents.download('tx_2');
+
+    expect(result.documentFormat).toBe('generic');
+    expect(result.signatureUrl).toBe('https://s3.example.com/signature.p7s');
+    expect(result.signedUrl).toBeUndefined();
+  });
 });
