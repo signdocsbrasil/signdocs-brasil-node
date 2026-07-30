@@ -98,3 +98,21 @@ export interface EnvelopeCombinedStampResponse {
   expiresIn: number;
   signerCount: number;
 }
+
+/**
+ * Result of cancelling an entire envelope.
+ *
+ * `preservedSignedCount` reports signatures already collected, which are left
+ * untouched — cancelling stops the pending signers, it never invalidates
+ * evidence already gathered. `alreadyCancelled` is set when the envelope was
+ * already CANCELLED, in which case `cancelledCount` is 0; the endpoint is
+ * idempotent, so re-cancelling is a safe no-op.
+ */
+export interface CancelEnvelopeResponse {
+  envelopeId: string;
+  status: string;
+  cancelledCount: number;
+  preservedSignedCount: number;
+  cancelledSessions: { sessionId: string; transactionId: string }[];
+  alreadyCancelled?: boolean;
+}

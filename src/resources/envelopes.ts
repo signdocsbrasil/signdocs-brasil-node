@@ -6,6 +6,7 @@ import {
   AddEnvelopeSessionRequest,
   EnvelopeSession,
   EnvelopeCombinedStampResponse,
+  CancelEnvelopeResponse,
 } from '../types/envelope';
 
 export class EnvelopesResource {
@@ -53,6 +54,37 @@ export class EnvelopesResource {
       method: 'POST',
       path: `/v1/envelopes/${envelopeId}/sessions`,
       body: request,
+      timeout: options?.timeout,
+    });
+  }
+
+  /**
+   * Cancel an entire envelope.
+   *
+   * Transitions every non-terminal session and its transaction to CANCELLED and
+   * marks the envelope CANCELLED, killing the pending signing links. Signatures
+   * already collected are preserved and reported as `preservedSignedCount`.
+   *
+   * Prefer this over cancelling each session individually: it is one call, it
+   * records the cancellation as a single auditable terminal event, and it is
+   * the only way to move the envelope's own status. Cancelling the member
+   * sessions one by one leaves the envelope itself ACTIVE.
+   *
+   * Idempotent: re-cancelling returns `cancelledCount` 0 and
+   * `alreadyCancelled` true.
+   *
+   * @param reason Free-text reason recorded in the audit trail. Defaults
+   *               server-side to `envelope_cancelled`.
+   */
+  async cancel(
+    envelopeId: string,
+    reason?: string,
+    options?: { timeout?: number },
+  ): Promise<CancelEnvelopeResponse> {
+    return this.http.request<CancelEnvelopeResponse>({
+      method: 'POST',
+      path: `/v1/envelopes/${envelopeId}/cancel`,
+      body: reason ? { reason } : {},
       timeout: options?.timeout,
     });
   }
