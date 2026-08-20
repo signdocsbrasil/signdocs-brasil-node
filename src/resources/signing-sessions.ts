@@ -10,6 +10,7 @@ import {
   SigningSessionListParams,
   SigningSessionListResponse,
   ResendOtpRequest,
+  MintSigningLinkResponse,
 } from '../types/signing-session';
 
 export class SigningSessionsResource {
@@ -55,6 +56,39 @@ export class SigningSessionsResource {
     return this.http.request<CancelSigningSessionResponse>({
       method: 'POST',
       path: `/v1/signing-sessions/${sessionId}/cancel`,
+      timeout: options?.timeout,
+    });
+  }
+
+  /**
+   * Mint a fresh signing URL for an existing session and return it, instead of
+   * e-mailing it.
+   *
+   * A signing link is **single-use**: once the signer finishes — or the embed
+   * token is otherwise consumed — reopening the same URL returns
+   * `401 Embed token has been consumed`. This issues a new one without creating
+   * another transaction and **without consuming quota**. Works for standalone
+   * and envelope sessions alike.
+   *
+   * The session must be `ACTIVE`; a completed or cancelled one returns 409,
+   * since a link to a finished session would authenticate nothing. To give
+   * access to the signed document use `envelopes.combinedStamp()` or
+   * `transactions.download()` instead.
+   *
+   * `expiresAt` is inherited from the original session and is not extended.
+   *
+   * **Authorises the tenant, not the end user.** The API cannot tell which of
+   * your users is entitled to this link, so an application whose users share
+   * one tenant must establish that itself before calling — otherwise this
+   * becomes a way for one user to obtain another's signing credential.
+   */
+  async link(
+    sessionId: string,
+    options?: { timeout?: number },
+  ): Promise<MintSigningLinkResponse> {
+    return this.http.request<MintSigningLinkResponse>({
+      method: 'POST',
+      path: `/v1/signing-sessions/${sessionId}/link`,
       timeout: options?.timeout,
     });
   }

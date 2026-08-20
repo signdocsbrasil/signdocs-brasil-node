@@ -46,6 +46,33 @@ describe('SigningSessionsResource', () => {
     });
   });
 
+  it('link() POSTs the link path with no body', async () => {
+    const minted = {
+      sessionId: 'ss_1',
+      transactionId: 'tx_1',
+      url: 'https://sign.signdocs.com.br/s/ss_1?cs=abc',
+      expiresAt: '2026-08-27T12:00:00.000Z',
+      expiresIn: 3600,
+    };
+    http.request.mockResolvedValue(minted as any);
+
+    const result = await sessions.link('ss_1');
+
+    expect(http.request).toHaveBeenCalledWith({
+      method: 'POST',
+      path: '/v1/signing-sessions/ss_1/link',
+      timeout: undefined,
+    });
+    // No body: the endpoint takes none, and sending one would be silently
+    // ignored rather than rejected.
+    expect(http.request.mock.calls[0][0]).not.toHaveProperty('body');
+    // Minting a link is not a metered create — it must not carry a key, or a
+    // retry would replay a consumed single-use URL instead of issuing a new one.
+    expect(http.requestWithIdempotency).not.toHaveBeenCalled();
+    expect(result.url).toBe(minted.url);
+    expect(result.expiresIn).toBe(3600);
+  });
+
   it('list() with status only sends just the status query', async () => {
     http.request.mockResolvedValue({ items: [] } as any);
     await sessions.list({ status: 'ACTIVE' } as any);

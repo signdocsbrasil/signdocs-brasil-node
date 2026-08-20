@@ -63,7 +63,7 @@ const client = new SignDocsBrasilClient({
 | `client.verification` | `verify`, `downloads` |
 | `client.users` | `enroll` |
 | `client.webhooks` | `register`, `list`, `delete`, `test` |
-| `client.signingSessions` | `create`, `getStatus`, `cancel`, `list`, `waitForCompletion` |
+| `client.signingSessions` | `create`, `getStatus`, `cancel`, `link`, `list`, `waitForCompletion` |
 | `client.envelopes` | `create`, `get`, `addSession`, `combinedStamp` |
 | `client.documentGroups` | `combinedStamp` |
 | `client.health` | `check`, `history` |

@@ -95,6 +95,17 @@ export interface CancelSigningSessionResponse {
   cancelledAt: string;
 }
 
+export interface MintSigningLinkResponse {
+  sessionId: string;
+  transactionId: string;
+  /** Single-use signing URL. Treat it as a bearer credential. */
+  url: string;
+  /** Deadline of the original session — this call does not extend it. */
+  expiresAt: string;
+  /** Seconds remaining until `expiresAt`. */
+  expiresIn: number;
+}
+
 export interface SigningSessionListParams {
   status: string;
   limit?: number;
