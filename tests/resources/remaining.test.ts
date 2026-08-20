@@ -210,18 +210,25 @@ describe('VerificationResource', () => {
       ],
       checkedAt: '2026-06-24T12:00:00.000Z',
     };
-    http.request.mockResolvedValue(mockResponse);
+    http.requestWithIdempotency.mockResolvedValue(mockResponse);
 
-    const result = await verification.verifyDocument({ content: 'base64-pdf', filename: 'doc.pdf' });
+    const result = await verification.verifyDocument(
+      { content: 'base64-pdf', filename: 'doc.pdf' },
+      'idem-1',
+    );
 
-    expect(http.request).toHaveBeenCalledWith({
-      method: 'POST',
-      path: '/v1/verify/document',
-      body: { content: 'base64-pdf', filename: 'doc.pdf' },
-      timeout: undefined,
-    });
+    // Metered endpoint — the key is what stops a retry charging twice.
+    expect(http.requestWithIdempotency).toHaveBeenCalledWith(
+      {
+        method: 'POST',
+        path: '/v1/verify/document',
+        body: { content: 'base64-pdf', filename: 'doc.pdf' },
+        timeout: undefined,
+      },
+      'idem-1',
+    );
     // Authenticated endpoint — must NOT set noAuth.
-    expect(http.request.mock.calls[0][0]).not.toHaveProperty('noAuth');
+    expect(http.requestWithIdempotency.mock.calls[0][0]).not.toHaveProperty('noAuth');
     expect(result.signed).toBe(true);
     expect(result.signatureCount).toBe(1);
     expect(result.signatures[0].type).toBe('pkcs7');

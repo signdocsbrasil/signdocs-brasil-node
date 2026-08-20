@@ -65,3 +65,43 @@ describe('EnvelopesResource.cancel', () => {
     expect(result.cancelledCount).toBe(0);
   });
 });
+
+describe('EnvelopesResource.addSession', () => {
+  let http: jest.Mocked<HttpClient>;
+  let envelopes: EnvelopesResource;
+
+  beforeEach(() => {
+    http = mockHttpClient();
+    envelopes = new EnvelopesResource(http);
+  });
+
+  it('sends an idempotency key', async () => {
+    // The client retries 500/503 on its own, and this response carries the only
+    // copy of clientSecret — so an unkeyed retry loses the credential and is
+    // billed for the signer twice.
+    http.requestWithIdempotency.mockResolvedValue({ sessionId: 'sess_1' } as any);
+
+    await envelopes.addSession('env_1', { signerIndex: 1 } as any, 'idem-signer-1');
+
+    expect(http.requestWithIdempotency).toHaveBeenCalledWith(
+      {
+        method: 'POST',
+        path: '/v1/envelopes/env_1/sessions',
+        body: { signerIndex: 1 },
+        timeout: undefined,
+      },
+      'idem-signer-1',
+    );
+  });
+
+  it('lets the client mint the key when the caller omits one', async () => {
+    http.requestWithIdempotency.mockResolvedValue({ sessionId: 'sess_1' } as any);
+
+    await envelopes.addSession('env_1', { signerIndex: 1 } as any);
+
+    expect(http.requestWithIdempotency).toHaveBeenCalledWith(
+      expect.objectContaining({ path: '/v1/envelopes/env_1/sessions' }),
+      undefined,
+    );
+  });
+});

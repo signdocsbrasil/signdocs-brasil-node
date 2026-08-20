@@ -57,17 +57,26 @@ export class VerificationResource {
    * — the signature-detection backend is not provisioned in HML, so calls
    * made with sandbox credentials will fail at runtime.
    *
+   * Idempotent, and metered: each distinct call consumes one unit of the
+   * `verification` quota. Retrying under one key returns the original answer
+   * without charging again — which is always the correct answer, since the
+   * result is a pure function of the PDF.
+   *
    * @param request The base64-encoded PDF (`content`) and optional `filename`.
    */
   async verifyDocument(
     request: VerifyDocumentRequest,
+    idempotencyKey?: string,
     options?: { timeout?: number },
   ): Promise<VerifyDocumentResponse> {
-    return this.http.request<VerifyDocumentResponse>({
-      method: 'POST',
-      path: '/v1/verify/document',
-      body: request,
-      timeout: options?.timeout,
-    });
+    return this.http.requestWithIdempotency<VerifyDocumentResponse>(
+      {
+        method: 'POST',
+        path: '/v1/verify/document',
+        body: request,
+        timeout: options?.timeout,
+      },
+      idempotencyKey,
+    );
   }
 }

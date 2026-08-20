@@ -44,18 +44,31 @@ export class EnvelopesResource {
   /**
    * Add a signing session to an envelope for a specific signer.
    * Returns the session URL and clientSecret for widget/redirect integration.
+   *
+   * Idempotent. The key is minted once here and reused across the client's
+   * internal 500/503 retries, which matters more on this call than on most:
+   * the response carries the only copy of `clientSecret`, so an unkeyed retry
+   * that lands after the first attempt already succeeded gets a 409 and no way
+   * back to the credential — while still having been billed for the signer.
+   *
+   * Pass a **distinct key per signer**; one key per envelope would serve
+   * signer 2 the response cached for signer 1.
    */
   async addSession(
     envelopeId: string,
     request: AddEnvelopeSessionRequest,
+    idempotencyKey?: string,
     options?: { timeout?: number },
   ): Promise<EnvelopeSession> {
-    return this.http.request<EnvelopeSession>({
-      method: 'POST',
-      path: `/v1/envelopes/${envelopeId}/sessions`,
-      body: request,
-      timeout: options?.timeout,
-    });
+    return this.http.requestWithIdempotency<EnvelopeSession>(
+      {
+        method: 'POST',
+        path: `/v1/envelopes/${envelopeId}/sessions`,
+        body: request,
+        timeout: options?.timeout,
+      },
+      idempotencyKey,
+    );
   }
 
   /**
