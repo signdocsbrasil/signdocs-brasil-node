@@ -59,7 +59,11 @@ describe('HttpClient', () => {
     await client.request({ method: 'GET', path: '/v1/test' });
 
     const headers = fn.mock.calls[0][1].headers;
-    expect(headers['User-Agent']).toBe('signdocs-brasil-node/2.0.0');
+    // Derived from package.json, not a literal: pinning the version here is
+    // what let the other SDKs ship a User-Agent reporting a release nobody
+    // was running. A release that forgets SDK_VERSION now fails here.
+    const { version } = require('../package.json');
+    expect(headers['User-Agent']).toBe(`signdocs-brasil-node/${version}`);
   });
 
   it('should skip Authorization when noAuth is true', async () => {
