@@ -48,6 +48,23 @@ export interface Geolocation {
 export interface Policy {
   profile: PolicyProfile;
   customSteps?: StepType[];
+  /**
+   * Minimum facial-match similarity this transaction requires, for the
+   * BIOMETRIC_MATCH and DOCUMENT_PHOTO_MATCH steps.
+   *
+   * Tightens only. The value must be at or above the tenant's configured
+   * threshold; anything lower is rejected with 400 naming the current minimum
+   * rather than being silently ignored — loosening identity checking is the
+   * tenant's decision, not the caller's. Accepts a percentage (95) or a
+   * fraction (0.95).
+   */
+  minSimilarity?: number;
+  /**
+   * Minimum liveness confidence this transaction requires (BIOMETRIC_LIVENESS).
+   * Same rule as minSimilarity: tightens only, 400 when below the tenant's
+   * floor. Any valid value is accepted when the tenant sets no liveness floor.
+   */
+  minLivenessConfidence?: number;
 }
 
 export interface Signer {
