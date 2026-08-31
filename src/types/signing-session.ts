@@ -143,22 +143,48 @@ export interface SigningSessionListResponse {
   nextCursor?: string;
 }
 
+/** Device characteristics recorded in the evidence alongside geolocation. */
+export interface DeviceInfo {
+  screenWidth?: number;
+  screenHeight?: number;
+  language?: string;
+  platform?: string;
+  touchPoints?: number;
+}
+
 export interface AdvanceSessionRequest {
   action:
+    | 'confirm_signer'
     | 'accept'
     | 'verify_otp'
     | 'resend_otp'
     | 'start_liveness'
     | 'complete_liveness'
     | 'prepare_signing'
-    | 'complete_signing';
+    | 'complete_signing'
+    | 'complete_document_photo';
+  /** CPF or CNPJ the signer types to confirm their identity (`confirm_signer`). */
+  cpfCnpj?: string;
   otpCode?: string;
   otpChannel?: 'email' | 'sms';
   livenessSessionId?: string;
   certificateChainPems?: string[];
   signatureRequestId?: string;
   rawSignatureBase64?: string;
+  /** Base64 identity-document photo, max 5MB (`complete_document_photo`). */
+  documentImage?: string;
+  documentType?: string;
+  /**
+   * Sandbox-only simulated scores, so a rejection can be rehearsed. Read only
+   * once the step already resolved to sandbox — they can never make a real
+   * verification pass.
+   */
+  sandboxSimilarity?: number;
+  sandboxLivenessConfidence?: number;
+  sandboxBrightness?: number;
+  sandboxSharpness?: number;
   geolocation?: Geolocation;
+  deviceInfo?: DeviceInfo;
 }
 
 export interface AdvanceSessionStep {
@@ -169,6 +195,15 @@ export interface AdvanceSessionStep {
 
 export interface SandboxData {
   otpCode?: string;
+  /** The biometric step will auto-approve. */
+  autoPass?: boolean;
+}
+
+/** Set when the policy diverted to an alternative step instead of failing. */
+export interface AdvanceFallback {
+  triggered: boolean;
+  reason: string;
+  nextStepType?: string;
 }
 
 export interface AdvanceSessionResponse {
@@ -186,6 +221,28 @@ export interface AdvanceSessionResponse {
   hashAlgorithm?: string;
   signatureAlgorithm?: string;
   sandbox?: SandboxData;
+  /**
+   * Why a step was rejected, when the step fails but the *request* does not.
+   *
+   * This is the part that matters most in a biometric integration: a rejected
+   * step comes back **200** with the session still `ACTIVE` and the reason
+   * here — not as an HTTP error. Code that only branches on the HTTP status
+   * reads a rejection as success.
+   *
+   * Emitted today: `BIOMETRIC_MATCH_FAILED`, `LIVENESS_NOT_COMPLETED`,
+   * `DOCUMENT_QUALITY_LOW`, `DOCUMENT_MATCH_FAILED`, and the `SERPRO_*`
+   * family.
+   */
+  errorCode?: string;
+  /** pt-BR text addressed to the signer, ready to display. */
+  errorDetail?: string;
+  /**
+   * True while the step has attempts left. Once they run out the step goes
+   * FAILED and this is false — the signal that retrying will not help. Each
+   * retry is billed as overage.
+   */
+  retryable?: boolean;
+  fallback?: AdvanceFallback;
 }
 
 export interface BootstrapSigner {
