@@ -4,6 +4,8 @@ import {
   EnrollUserResponse,
   EnrollmentStatusResponse,
   DeleteEnrollmentResponse,
+  EnrollUsersBatchRequest,
+  EnrollUsersBatchResponse,
 } from '../types/user';
 
 export class UsersResource {
@@ -13,6 +15,24 @@ export class UsersResource {
     return this.http.request<EnrollUserResponse>({
       method: 'PUT',
       path: `/v1/users/${userExternalId}/enrollment`,
+      body: request,
+      timeout: options?.timeout,
+    });
+  }
+
+  /**
+   * Enrols up to 25 users in one request.
+   *
+   * The documented cap is 25 rows, but the binding limit is the request body —
+   * roughly 6MB, and base64 inflates each photo by a third. Keep photos under
+   * ~175KB (640x640 is ample) to use all 25 slots.
+   *
+   * Set `dryRun` to inspect the photos without storing anything.
+   */
+  async enrollBatch(request: EnrollUsersBatchRequest, options?: { timeout?: number }): Promise<EnrollUsersBatchResponse> {
+    return this.http.request<EnrollUsersBatchResponse>({
+      method: 'POST',
+      path: '/v1/users/enrollments',
       body: request,
       timeout: options?.timeout,
     });
