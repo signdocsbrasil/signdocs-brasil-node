@@ -21,6 +21,8 @@ const SPEC_EVENTS: readonly string[] = [
   'STEP.COMPLETED',
   'STEP.FAILED',
   'STEP.PURPOSE_DISCLOSURE_SENT',
+  'ENROLLMENT.EXPIRING',
+  'ENROLLMENT.EXPIRED',
   'QUOTA.WARNING',
   'API.DEPRECATION_NOTICE',
   'SIGNING_SESSION.CREATED',
@@ -47,7 +49,10 @@ describe('WebhookEventType', () => {
 
   it('has the same count as the spec', () => {
     expect(WEBHOOK_EVENT_TYPES.length).toBe(SPEC_EVENTS.length);
-    expect(WEBHOOK_EVENT_TYPES.length).toBe(20);
+    // 20 -> 22 when ENROLLMENT.EXPIRING / ENROLLMENT.EXPIRED landed in the
+    // spec. The count is a tripwire on purpose: a spec addition should fail
+    // here until someone decides the SDK models it too.
+    expect(WEBHOOK_EVENT_TYPES.length).toBe(22);
   });
 
   it('flags NT65 INSS consignado events', () => {
