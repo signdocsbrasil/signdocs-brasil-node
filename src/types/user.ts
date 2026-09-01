@@ -1,9 +1,33 @@
 export type EnrollmentSource = 'BANK_PROVIDED' | 'FIRST_LIVENESS' | 'DOCUMENT_PHOTO';
 
+/** Advisory reasons a photo is usable but weak. */
+export type EnrollmentWarning =
+  | 'LOW_BRIGHTNESS'
+  | 'LOW_SHARPNESS'
+  | 'FACE_TOO_SMALL'
+  | 'HEAD_TURNED';
+
+export interface FaceQualityMetrics {
+  brightness?: number;
+  sharpness?: number;
+}
+
+export interface FacePoseMetrics {
+  yaw?: number;
+  pitch?: number;
+  roll?: number;
+}
+
 export interface EnrollUserRequest {
   image: string;
   cpf: string;
   source?: EnrollmentSource;
+  /**
+   * Inspect without writing. Returns the same verdict the batch endpoint gives
+   * — `usable` / `marginal` / `rejected` with metrics — and persists nothing:
+   * no image, no record, and the 90-day retention clock never starts.
+   */
+  dryRun?: boolean;
 }
 
 export interface EnrollUserResponse {
@@ -13,9 +37,43 @@ export interface EnrollUserResponse {
   enrollmentSource: EnrollmentSource;
   enrolledAt: string;
   cpf: string;
+  /**
+   * Rekognition's detection confidence.
+   *
+   * Read `warnings` too. This answers "is this a face?", not "is this a good
+   * reference" — a dark, blurred photo scores 99.99 here and still fails face
+   * matching later.
+   */
   faceConfidence: number;
   documentImageHash?: string;
   extractionConfidence?: number;
+  /** Capture metrics for the stored reference. */
+  quality?: FaceQualityMetrics;
+  pose?: FacePoseMetrics;
+  faceCoverage?: number;
+  /**
+   * Quality advisories. Present on a *successful* enrolment too — the photo is
+   * stored either way, and knowing it is weak now beats finding out from a
+   * failed signature months later. Empty when there is nothing to flag.
+   */
+  warnings?: EnrollmentWarning[];
+}
+
+/** Verdict for one candidate photo, from a `dryRun`. */
+export interface InspectEnrollmentResponse {
+  dryRun: true;
+  userExternalId?: string;
+  /**
+   * `marginal` is the one to act on: it would enrol without complaint and is
+   * exactly what becomes a rejected signature later.
+   */
+  status: 'usable' | 'marginal' | 'rejected';
+  error?: string;
+  faceConfidence?: number;
+  quality?: FaceQualityMetrics;
+  pose?: FacePoseMetrics;
+  faceCoverage?: number;
+  warnings: EnrollmentWarning[];
 }
 
 /**
@@ -80,24 +138,6 @@ export interface EnrollUsersBatchRequest {
    * unusable.
    */
   dryRun?: boolean;
-}
-
-/** Advisory reasons a photo is usable but weak. */
-export type EnrollmentWarning =
-  | 'LOW_BRIGHTNESS'
-  | 'LOW_SHARPNESS'
-  | 'FACE_TOO_SMALL'
-  | 'HEAD_TURNED';
-
-export interface FaceQualityMetrics {
-  brightness?: number;
-  sharpness?: number;
-}
-
-export interface FacePoseMetrics {
-  yaw?: number;
-  pitch?: number;
-  roll?: number;
 }
 
 export interface BatchEnrollmentResult {

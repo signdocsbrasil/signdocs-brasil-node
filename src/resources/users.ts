@@ -6,10 +6,26 @@ import {
   DeleteEnrollmentResponse,
   EnrollUsersBatchRequest,
   EnrollUsersBatchResponse,
+  InspectEnrollmentResponse,
 } from '../types/user';
 
 export class UsersResource {
   constructor(private readonly http: HttpClient) {}
+
+  /**
+   * Inspects one photo without storing it (`dryRun`).
+   *
+   * Same verdict the batch endpoint returns, from the same code — a photo must
+   * not be judged differently depending on which endpoint you asked.
+   */
+  async inspect(userExternalId: string, request: Omit<EnrollUserRequest, 'dryRun'>, options?: { timeout?: number }): Promise<InspectEnrollmentResponse> {
+    return this.http.request<InspectEnrollmentResponse>({
+      method: 'PUT',
+      path: `/v1/users/${userExternalId}/enrollment`,
+      body: { ...request, dryRun: true },
+      timeout: options?.timeout,
+    });
+  }
 
   async enroll(userExternalId: string, request: EnrollUserRequest, options?: { timeout?: number }): Promise<EnrollUserResponse> {
     return this.http.request<EnrollUserResponse>({

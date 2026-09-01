@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Capture metrics on every enrollment response**, not just on a dry run.
+  `quality` (brightness, sharpness), `pose`, `faceCoverage` and `warnings` now
+  come back from a **successful** enrolment too.
+  - This closes the gap that mattered: `faceConfidence` answers *"is this a
+    face?"*, and a dark, blurred photo scores **99.99** on it. Anyone enrolling
+    one user at a time got that reassuring number and no other signal, while
+    batch callers using `dryRun` saw the whole picture.
+  - The photo is stored either way; knowing it is weak now beats finding out
+    from a failed signature three months later. Costs no extra Rekognition
+    call — the data was already being fetched and discarded.
+- **`dryRun` on the single enrollment endpoint**, for symmetry with the batch,
+  plus an `inspect` helper that sets it for you. Same verdict, from the same
+  code, so a photo cannot be judged differently depending on which endpoint you
+  asked.
+
 - **Batch enrollment** — `POST /v1/users/enrollments`, up to 25 users per
   request. No SDK exposed this endpoint before; the route itself only went live
   the day prior.
