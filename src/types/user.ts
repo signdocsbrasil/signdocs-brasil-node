@@ -1,5 +1,8 @@
 export type EnrollmentSource = 'BANK_PROVIDED' | 'FIRST_LIVENESS' | 'DOCUMENT_PHOTO';
 
+/** Verdict on a reference photo. Same values wherever it appears. */
+export type ReferenceQuality = 'usable' | 'marginal' | 'rejected';
+
 /** Advisory reasons a photo is usable but weak. */
 export type EnrollmentWarning =
   | 'LOW_BRIGHTNESS'
@@ -57,6 +60,16 @@ export interface EnrollUserResponse {
    * failed signature months later. Empty when there is nothing to flag.
    */
   warnings?: EnrollmentWarning[];
+  /**
+   * Whether the photo works as a reference: `usable`, `marginal`, or
+   * `rejected`. Read this rather than deriving it from `warnings`.
+   *
+   * Deliberately not `status`: on a batch row `status` says what happened to
+   * the write (`enrolled` / `failed`), which is a different question. A poor
+   * photo that stored fine is `status: 'enrolled'` with
+   * `referenceQuality: 'marginal'` — the combination worth acting on.
+   */
+  referenceQuality?: ReferenceQuality;
 }
 
 /** Verdict for one candidate photo, from a `dryRun`. */
@@ -74,6 +87,8 @@ export interface InspectEnrollmentResponse {
   pose?: FacePoseMetrics;
   faceCoverage?: number;
   warnings: EnrollmentWarning[];
+  /** Same field a real enrolment returns. In a dry run it equals `status`. */
+  referenceQuality?: ReferenceQuality;
 }
 
 /**
@@ -161,8 +176,18 @@ export interface BatchEnrollmentResult {
   pose?: FacePoseMetrics;
   /** Dry run only. Face area as a fraction of the frame, 0-1. */
   faceCoverage?: number;
-  /** Dry run only. Empty on a clean photo. */
+  /** Empty on a clean photo. */
   warnings?: EnrollmentWarning[];
+  /**
+   * Whether the photo works as a reference: `usable`, `marginal`, or
+   * `rejected`. Read this rather than deriving it from `warnings`.
+   *
+   * Deliberately not `status`: on a batch row `status` says what happened to
+   * the write (`enrolled` / `failed`), which is a different question. A poor
+   * photo that stored fine is `status: 'enrolled'` with
+   * `referenceQuality: 'marginal'` — the combination worth acting on.
+   */
+  referenceQuality?: ReferenceQuality;
 }
 
 /**

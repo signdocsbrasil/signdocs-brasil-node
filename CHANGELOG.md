@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`referenceQuality`** — one field answering "is this photo good enough as a
+  reference": `usable`, `marginal` or `rejected`. Present on every enrollment
+  response: single, batch row, real write and dry run alike.
+  - Read it instead of deriving the answer from `warnings`. Before this, a real
+    enrolment had no verdict at all while a dry run of the same photo returned
+    one — two shapes for one question.
+  - Deliberately **not** `status`. On a batch row `status` says what happened to
+    the write (`enrolled` / `failed`), which is a different question. A poor
+    photo that stored fine is `status: enrolled` with
+    `referenceQuality: marginal` — the combination worth acting on, and one
+    field could not express it.
+
 - **Capture metrics on every enrollment response**, not just on a dry run.
   `quality` (brightness, sharpness), `pose`, `faceCoverage` and `warnings` now
   come back from a **successful** enrolment too.
