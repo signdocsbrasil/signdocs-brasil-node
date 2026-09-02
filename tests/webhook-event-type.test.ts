@@ -17,9 +17,6 @@ const SPEC_EVENTS: readonly string[] = [
   'TRANSACTION.EXPIRED',
   'TRANSACTION.FALLBACK',
   'TRANSACTION.DEADLINE_APPROACHING',
-  'STEP.STARTED',
-  'STEP.COMPLETED',
-  'STEP.FAILED',
   'STEP.PURPOSE_DISCLOSURE_SENT',
   'ENROLLMENT.EXPIRING',
   'ENROLLMENT.EXPIRED',
@@ -31,6 +28,7 @@ const SPEC_EVENTS: readonly string[] = [
   'SIGNING_SESSION.EXPIRED',
   'ENVELOPE.CREATED',
   'ENVELOPE.ALL_SIGNED',
+  'ENVELOPE.CANCELLED',
   'ENVELOPE.EXPIRED',
 ];
 
@@ -52,7 +50,7 @@ describe('WebhookEventType', () => {
     // 20 -> 22 when ENROLLMENT.EXPIRING / ENROLLMENT.EXPIRED landed in the
     // spec. The count is a tripwire on purpose: a spec addition should fail
     // here until someone decides the SDK models it too.
-    expect(WEBHOOK_EVENT_TYPES.length).toBe(22);
+    expect(WEBHOOK_EVENT_TYPES.length).toBe(20);
   });
 
   it('flags NT65 INSS consignado events', () => {
@@ -60,7 +58,7 @@ describe('WebhookEventType', () => {
     expect(isNt65Event('STEP.PURPOSE_DISCLOSURE_SENT')).toBe(true);
 
     expect(isNt65Event('TRANSACTION.COMPLETED')).toBe(false);
-    expect(isNt65Event('STEP.COMPLETED')).toBe(false);
+    expect(isNt65Event('SIGNING_SESSION.COMPLETED')).toBe(false);
     expect(isNt65Event('QUOTA.WARNING')).toBe(false);
   });
 
