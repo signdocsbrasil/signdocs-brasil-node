@@ -1,6 +1,8 @@
 # @signdocs-brasil/api
 
-SDK oficial em TypeScript/Node.js para a API SignDocsBrasil.
+SDK oficial em TypeScript/Node.js para a API SignDocs Brasil: assinatura eletrônica e digital de documentos com ICP-Brasil, certificado digital, biometria, OTP e trilha de evidências.
+
+Official TypeScript/Node.js SDK for the SignDocs Brasil e-signature API.
 
 ## Requisitos
 
