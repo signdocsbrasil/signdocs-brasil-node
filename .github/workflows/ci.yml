@@ -68,10 +68,17 @@ jobs:
       - run: npm ci
       - run: npm run build
         # No --provenance: it requires the OIDC Trusted Publisher binding, which
-        # in turn requires 2FA on the npm account. With the flag, npm answers the
-        # PUT with a misleading `404 Not Found` and the publish silently never
-        # happens — that is why v2.3.0 and v3.0.0 were tagged but never shipped.
-        # Same fix already proven in n8n-nodes-signdocs-brasil.
+        # in turn requires 2FA on the npm account we have not enabled. Same
+        # setting as n8n-nodes-signdocs-brasil.
+        #
+        # It is NOT what broke v2.3.0/v3.0.0 — that was tested: with the flag
+        # removed, v3.0.1 still failed with the same `404 Not Found - PUT`. npm
+        # answers a PUT with 404, not 401, when the token cannot publish the
+        # scope, so an expired NPM_TOKEN looks like a missing package. 3.0.1 was
+        # then published from a workstation with a valid token, unchanged.
+        #
+        # If a tag build fails here with E404, replace the NPM_TOKEN secret
+        # before looking anywhere else.
       - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
