@@ -1,4 +1,17 @@
-export type EnrollmentSource = 'BANK_PROVIDED' | 'FIRST_LIVENESS' | 'DOCUMENT_PHOTO';
+/**
+ * Where the reference image came from — who vouches for the face, and whether
+ * the subject was present when it was captured.
+ *
+ * `BANK_PROVIDED` is the former name of `ORGANIZATION_PROVIDED`, still
+ * accepted on input and normalised away on write. It stays in the union
+ * because enrollments made before September 2026 — and every evidence pack
+ * sealed before then — still carry it.
+ */
+export type EnrollmentSource =
+  | 'ORGANIZATION_PROVIDED'
+  | 'FIRST_LIVENESS'
+  | 'DOCUMENT_PHOTO'
+  | 'BANK_PROVIDED';
 
 /** Verdict on a reference photo. Same values wherever it appears. */
 export type ReferenceQuality = 'usable' | 'marginal' | 'rejected';
