@@ -54,7 +54,11 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: read
-      id-token: write
+      # id-token: write — was required for the OIDC Trusted Publisher path.
+      # Removed because we publish with a Classic Automation NPM_TOKEN (Trusted
+      # Publisher setup is gated on TOTP/security-key 2FA on the npm account,
+      # which we haven't enabled). Re-add this permission and the --provenance
+      # flag below when Trusted Publisher is configured.
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -63,6 +67,11 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npm run build
-      - run: npm publish --access public --provenance
+        # No --provenance: it requires the OIDC Trusted Publisher binding, which
+        # in turn requires 2FA on the npm account. With the flag, npm answers the
+        # PUT with a misleading `404 Not Found` and the publish silently never
+        # happens — that is why v2.3.0 and v3.0.0 were tagged but never shipped.
+        # Same fix already proven in n8n-nodes-signdocs-brasil.
+      - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
