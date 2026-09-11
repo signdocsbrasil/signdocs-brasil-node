@@ -34,7 +34,7 @@ export type TransactionPurpose = 'DOCUMENT_SIGNATURE' | 'ACTION_AUTHENTICATION';
 
 export type CaptureMode = 'BANK_APP' | 'HOSTED_PAGE';
 
-export type OtpChannel = 'email' | 'sms';
+export type OtpChannel = 'email' | 'sms' | 'whatsapp' | 'telegram';
 
 export type GeolocationSource = 'GPS' | 'IP' | 'WIFI' | 'CELL';
 

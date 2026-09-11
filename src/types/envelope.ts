@@ -1,4 +1,5 @@
 import type { Owner } from './signing-session';
+import type { OtpChannel } from './transaction';
 
 export type EnvelopeStatus = 'CREATED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED';
 export type SigningMode = 'PARALLEL' | 'SEQUENTIAL';
@@ -40,7 +41,7 @@ export interface AddEnvelopeSessionRequest {
     email?: string;
     phone?: string;
     birthDate?: string;
-    otpChannel?: 'email' | 'sms';
+    otpChannel?: OtpChannel;
   };
   policy: { profile: string };
   purpose?: 'DOCUMENT_SIGNATURE' | 'ACTION_AUTHENTICATION';
@@ -48,6 +49,14 @@ export interface AddEnvelopeSessionRequest {
   returnUrl?: string;
   cancelUrl?: string;
   metadata?: Record<string, string>;
+  /**
+   * Channels SignDocs uses to deliver the signing link to this signer; each
+   * signer picks their own. Omit to keep the previous behavior: the invite
+   * email only. In a SEQUENTIAL envelope a later signer receives the link
+   * over these channels when their turn comes. Same rules as `deliverVia` on
+   * `CreateSigningSessionRequest`.
+   */
+  deliverVia?: Array<'email' | 'whatsapp' | 'telegram'>;
 }
 
 export interface EnvelopeSession {
@@ -65,6 +74,17 @@ export interface EnvelopeSession {
    * email differs from the owner's.
    */
   inviteSent?: boolean;
+  /**
+   * `true` when Meta accepted the WhatsApp message carrying the link —
+   * accepted, not delivered. Omitted otherwise.
+   */
+  whatsappInviteSent?: boolean;
+  /**
+   * Result of the Telegram delivery, present whenever `deliverVia` included
+   * `telegram`. `false` means the link did not reach the signer over
+   * Telegram (no CPF registered with the bot, or the send failed).
+   */
+  telegramInviteSent?: boolean;
 }
 
 export interface EnvelopeSessionSummary {

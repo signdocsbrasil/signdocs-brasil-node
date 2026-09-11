@@ -112,6 +112,27 @@ const session2 = await client.envelopes.addSession(envelope.envelopeId, {
 console.log(session1.url, session2.url);
 ```
 
+## Canais de entrega
+
+A SignDocs entrega o link por e-mail, WhatsApp ou Telegram — escolha por signatário em `deliverVia`. WhatsApp e Telegram são habilitados sob demanda; fale com o time comercial. WhatsApp exige `signer.phone` em E.164; Telegram exige `signer.cpf` e só alcança quem já registrou o CPF no bot da SignDocs. O OTP pode ir por `email`, `sms`, `whatsapp` ou `telegram` (`otpChannel`), independentemente do canal do link. Cada envio por WhatsApp ou Telegram consome a cota de mensagens do tenant; esgotada, a API responde 429.
+
+```typescript
+const session = await client.signingSessions.create({
+  purpose: 'DOCUMENT_SIGNATURE',
+  policy: { profile: 'CLICK_ONLY' },
+  signer: {
+    name: 'João Silva',
+    cpf: '12345678901',
+    phone: '+5511999998888',
+    userExternalId: 'user-001',
+  },
+  document: { content: pdfBase64, filename: 'contrato.pdf' },
+  deliverVia: ['whatsapp'],
+});
+
+console.log(session.whatsappInviteSent); // true quando a Meta aceitou a mensagem
+```
+
 ## Configuração Avançada
 
 ### HTTP Client customizado

@@ -1,4 +1,4 @@
-import type { Geolocation, ActionMetadata } from './transaction';
+import type { Geolocation, ActionMetadata, OtpChannel } from './transaction';
 
 /**
  * Identity of the requester creating a signing session or envelope,
@@ -48,7 +48,7 @@ export interface CreateSigningSessionRequest {
     cpf?: string;
     cnpj?: string;
     userExternalId: string;
-    otpChannel?: 'email' | 'sms';
+    otpChannel?: OtpChannel;
     otpChannelSelectable?: boolean;
     birthDate?: string;
   };
@@ -79,6 +79,15 @@ export interface CreateSigningSessionRequest {
   };
   /** See {@link Owner} for behavior when set. */
   owner?: Owner;
+  /**
+   * Channels SignDocs uses to deliver the signing link to this signer.
+   * Omit to keep the previous behavior: the invite email only, under the
+   * {@link Owner} rule. WhatsApp and Telegram are enabled on request;
+   * `whatsapp` requires `signer.phone` in E.164 and `telegram` requires
+   * `signer.cpf`. Each WhatsApp or Telegram send consumes the tenant's
+   * message quota (429 once it runs out).
+   */
+  deliverVia?: Array<'email' | 'whatsapp' | 'telegram'>;
 }
 
 export interface SigningSession {
@@ -95,6 +104,17 @@ export interface SigningSession {
    * provided and `signer.email` differs from `owner.email`.
    */
   inviteSent?: boolean;
+  /**
+   * `true` when Meta accepted the WhatsApp message carrying the link —
+   * accepted, not delivered. Omitted otherwise.
+   */
+  whatsappInviteSent?: boolean;
+  /**
+   * Result of the Telegram delivery, present whenever `deliverVia` included
+   * `telegram`. `false` means the link did not reach the signer over
+   * Telegram (no CPF registered with the bot, or the send failed).
+   */
+  telegramInviteSent?: boolean;
 }
 
 export interface SigningSessionStatus {
@@ -166,7 +186,7 @@ export interface AdvanceSessionRequest {
   /** CPF or CNPJ the signer types to confirm their identity (`confirm_signer`). */
   cpfCnpj?: string;
   otpCode?: string;
-  otpChannel?: 'email' | 'sms';
+  otpChannel?: OtpChannel;
   livenessSessionId?: string;
   certificateChainPems?: string[];
   signatureRequestId?: string;
@@ -250,11 +270,11 @@ export interface BootstrapSigner {
   maskedEmail?: string;
   maskedCpf?: string;
   otpChannelSelectable?: boolean;
-  availableOtpChannels?: Array<'email' | 'sms'>;
+  availableOtpChannels?: Array<OtpChannel>;
 }
 
 export interface ResendOtpRequest {
-  channel?: 'email' | 'sms';
+  channel?: OtpChannel;
 }
 
 export interface BootstrapStep {
