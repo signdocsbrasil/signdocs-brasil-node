@@ -2,6 +2,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { Transaction, TransactionListResponse, Step } from '../src/types/transaction';
 import type { ProblemDetail } from '../src/errors';
+import { parseApiError } from '../src/errors';
+import type { CompleteSigningResponse } from '../src/types/signing';
 
 const FIXTURES_DIR = path.resolve(__dirname, '../fixtures');
 
@@ -111,5 +113,29 @@ describe('Model deserialization (TypeScript type assertions on fixture data)', (
     expect(evidence.steps[0].result.click.accepted).toBe(true);
     expect(evidence.document.hash).toBeDefined();
     expect(evidence.document.filename).toBe('contract.pdf');
+  });
+
+  it('CompleteSigningResponse exposes the ICP-Brasil signature timestamp', () => {
+    const resp: CompleteSigningResponse = loadFixture('signing-complete-timestamp').response.body;
+    const ts = resp.result.digitalSignature.signatureTimestamp;
+
+    expect(ts?.genTime).toBe('2024-11-15T12:05:02.123Z');
+    expect(ts?.policyOid).toBe('2.16.76.1.6.2');
+    expect(ts?.serial).toBe('78F42C1F9B1D36B9');
+  });
+
+  it('CompleteSigningResponse without the feature has no signatureTimestamp', () => {
+    const resp: CompleteSigningResponse = loadFixture('signing-complete').response.body;
+
+    expect(resp.result.digitalSignature.signatureTimestamp).toBeUndefined();
+  });
+
+  it('503 TIMESTAMP_UNAVAILABLE surfaces code and retryable', () => {
+    const pd: ProblemDetail = loadFixture('error-503-timestamp').response.body;
+    const err = parseApiError(503, pd, 30);
+
+    expect(err.status).toBe(503);
+    expect(err.code).toBe('TIMESTAMP_UNAVAILABLE');
+    expect(err.problemDetail.retryable).toBe(true);
   });
 });

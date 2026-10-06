@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Support for the ICP-Brasil signature timestamp (carimbo do tempo). On tenants with the
+  feature, the server embeds an RFC 3161 token from an accredited ACT in every digital-certificate
+  signature (PAdES-B-T / CAdES-T). Nothing changes in the signing flow.
+- `SignatureTimestamp` (`genTime`, `tsaName`, `serial`, `policyOid`, `tokenSha256`) and
+  `signatureTimestamp?` on the complete-signing result's `digitalSignature`, on
+  `StepResult.digitalSignature` and (summary) on `VerificationResponse.steps[]`.
+- `signedP7sHash?` and `documentFormat?` on the complete-signing result, which the API already
+  returned for generic (non-PDF) documents.
+- `code?` and `retryable?` on `ProblemDetail`, and `code` on `SignDocsBrasilApiError`. A 503 with
+  `code === 'TIMESTAMP_UNAVAILABLE'` from `signing.complete` means the ACT was unavailable: the
+  signature request stays pending, so resend the same `rawSignatureBase64` after `Retry-After`.
+
 ## [3.1.0] - 2026-09-11
 
 ### Added

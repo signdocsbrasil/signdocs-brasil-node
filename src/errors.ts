@@ -4,6 +4,10 @@ export interface ProblemDetail {
   status: number;
   detail?: string;
   instance?: string;
+  /** Stable machine-readable case, when the API gives one (e.g. `TIMESTAMP_UNAVAILABLE`, `SIGNER_TURN`). */
+  code?: string;
+  /** Present when the API states that resending the same request is safe. */
+  retryable?: boolean;
   [key: string]: unknown;
 }
 
@@ -20,6 +24,8 @@ export class SignDocsBrasilApiError extends SignDocsBrasilError {
   public readonly title: string;
   public readonly detail?: string;
   public readonly instance?: string;
+  /** Stable machine-readable case, when the API gives one (e.g. `TIMESTAMP_UNAVAILABLE`). */
+  public readonly code?: string;
   public readonly problemDetail: ProblemDetail;
 
   constructor(problemDetail: ProblemDetail) {
@@ -30,6 +36,7 @@ export class SignDocsBrasilApiError extends SignDocsBrasilError {
     this.title = problemDetail.title;
     this.detail = problemDetail.detail;
     this.instance = problemDetail.instance;
+    this.code = typeof problemDetail.code === 'string' ? problemDetail.code : undefined;
     this.problemDetail = problemDetail;
   }
 }

@@ -1,3 +1,4 @@
+import type { SignatureTimestamp } from './signing';
 export type TransactionStatus =
   | 'CREATED'
   | 'DOCUMENT_UPLOADED'
@@ -155,6 +156,7 @@ export interface StepResult {
     signedPdfHash: string;
     signedPdfS3Key?: string;
     signatureFieldName: string;
+    signatureTimestamp?: SignatureTimestamp;
   };
   serproIdentity?: {
     valid: boolean;

@@ -1,3 +1,4 @@
+import type { SignatureTimestamp } from './signing';
 import { Policy, StepResult } from './transaction';
 
 export interface Evidence {
@@ -43,6 +44,8 @@ export interface VerificationResponse {
     status: string;
     order: number;
     completedAt?: string;
+    /** ICP-Brasil timestamp on a DIGITAL_SIGN_A1 step, when the tenant has the feature. */
+    signatureTimestamp?: Pick<SignatureTimestamp, 'genTime' | 'tsaName' | 'policyOid'>;
   }>;
   signer: {
     displayName?: string;
